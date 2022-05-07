@@ -934,6 +934,15 @@ Math Constant Hunter:
   manipulates_state: false
   memory_depth: .inf
   stochastic: false
+Mediocre QLearner:
+  inspects_source: false
+  long_run_time: false
+  makes_use_of: !!set
+    game: null
+  manipulates_source: false
+  manipulates_state: false
+  memory_depth: .inf
+  stochastic: true
 Memory Decay:
   inspects_source: false
   long_run_time: false
@@ -1353,10 +1362,15 @@ Pun1:
   manipulates_state: false
   memory_depth: .inf
   stochastic: false
-Punisher:
+Punisher:Risky QLearner:
   inspects_source: false
   long_run_time: false
-  makes_use_of: !!set {}
+  makes_use_of: !!set
+    game: null
+  manipulates_source: false
+  manipulates_state: false
+  memory_depth: .inf
+  stochastic: true
   manipulates_source: false
   manipulates_state: false
   memory_depth: .inf
@@ -1468,7 +1482,15 @@ Second by Appold:
   stochastic: true
 Second by Black:
   inspects_source: false
+  long_run_time: false:
+  inspects_source: false
   long_run_time: false
+  makes_use_of: !!set
+    game: null
+  manipulates_source: false
+  manipulates_state: false
+  memory_depth: .inf
+  stochastic: true
   makes_use_of: !!set {}
   manipulates_source: false
   manipulates_state: false
