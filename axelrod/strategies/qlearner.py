@@ -164,3 +164,17 @@ class CautiousQLearner(RiskyQLearner):
     name = "Cautious QLearner"
     learning_rate = 0.1
     discount_rate = 0.1
+    
+class MediocreQLearner(RiskyQLearner):
+    """A player who learns mediocre strategies through the q-learning algorithm.
+
+    This Q learner is mediocre to come to conclusions and only looks mid way ahead
+
+    Names:
+
+    - Mediocre Q Learner: Original name by Davor Jovanoski
+    """
+
+    name = "Mediocre QLearner"
+    learning_rate = 0.5
+    discount_rate = 0.5

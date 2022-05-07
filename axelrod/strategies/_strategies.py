@@ -215,6 +215,7 @@ from .qlearner import (
     CautiousQLearner,
     HesitantQLearner,
     RiskyQLearner,
+    MediocreQLearner,
 )
 from .rand import Random
 from .resurrection import DoubleResurrection, Resurrection
@@ -394,6 +395,7 @@ all_strategies = [
     LimitedRetaliate3,
     MEM2,
     MathConstantHunter,
+    MediocreQLearner,
     Michaelos,
     NTitsForMTats,
     NaiveProber,
