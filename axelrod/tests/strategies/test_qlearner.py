@@ -210,3 +210,41 @@ class TestMediocreQLearner(TestPlayer):
                 "prev_state": "DDD0.0",
             },
         )
+class TestDeepQLearner(TestPlayer):
+
+    name = "Cautious QLearner"
+    player = axl.TestDeepQLearner
+    expected_classifier = {
+        "memory_depth": float("inf"),  # Long memory
+        "stochastic": True,
+        "makes_use_of": {"game"},
+        "long_run_time": False,
+        "inspects_source": False,
+        "manipulates_source": False,
+        "manipulates_state": False,
+    }
+
+    def test_strategy(self):
+        actions = [(C, D), (D, D), (C, D), (C, D)]
+        self.versus_test(
+            opponent=axl.Defector(),
+            expected_actions=actions,
+            seed=32,
+            attrs={
+                "Qs": {
+                    "": {C: 0, D: 0.1},
+                    "0.0": {C: 0, D: 0},
+                    "D0.0": {C: 0, D: 0.1},
+                    "DD0.0": {C: 0, D: 0},
+                    "DDD0.0": {C: 0, D: 0},
+                },
+                "Vs": {
+                    "": 0.1,
+                    "0.0": 0.0,
+                    "D0.0": 0.1,
+                    "DD0.0": 0.0,
+                    "DDD0.0": 0,
+                },
+                "prev_state": "DDD0.0",
+            },
+        )
