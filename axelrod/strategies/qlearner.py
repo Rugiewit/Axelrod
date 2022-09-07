@@ -1,13 +1,15 @@
 from collections import OrderedDict
+import random
 from typing import Dict, Union
 
-from axelrod.action import Action, actions_to_str
+from axelrod.action import Action, actions_to_str, str_to_actions
 from axelrod.player import Player
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
 from collections import deque
+
 
 Score = Union[int, float]
 
@@ -192,8 +194,8 @@ class DeepQLearner(RiskyQLearner):
     """
 
     name = "Deep QLearner"   
-    learning_rate = 0.7
-    discount_rate = 0.3
+    learning_rate = 0.1
+    discount_rate = 0.95
     
     def __init__(self) -> None:
         """Initialises the player by picking a random strategy."""
@@ -202,87 +204,100 @@ class DeepQLearner(RiskyQLearner):
 
         # Set this explicitly, since the constructor of super will not pick it up
         # for any subclasses that do not override methods using random calls.
-        self.classifier["stochastic"] = True
-        self.target_model = self.agent()
+        self.classifier["stochastic"] = True        
         self.model = self.agent()
-        self.past = deque(maxlen=50)
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
-        self.batch_size = 4
-        self.copy_to_target_model()
 
     def agent(self):
+        model = keras.Sequential()
+        model.add(keras.layers.InputLayer(batch_input_shape=(1, 2)))
+        model.add(keras.layers.Dense(10, activation='sigmoid'))
+        model.add(keras.layers.Dense(2, activation='linear'))
+        model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+        return model
+    
+    def agent2(self):
         init = tf.keras.initializers.HeUniform()
         model = keras.Sequential()
-        model.add(keras.layers.Dense(16, input_shape=(1,1), activation='relu', kernel_initializer=init))
+        model.add(keras.layers.Dense(16, input_shape=(1,2), activation='relu', kernel_initializer=init))
         model.add(keras.layers.Dense(8, activation='relu', kernel_initializer=init))
-        model.add(keras.layers.Dense(1, activation='linear', kernel_initializer=init))
+        model.add(keras.layers.Dense(2, activation='linear', kernel_initializer=init))
         model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
         return model
+    
 
-    def copy_to_target_model(self):
-        self.target_model.set_weights(self.model.get_weights())
-
-    def note(self, state, action, reward, next_state, done):
-        self.past.append((state, action, reward, next_state, done))
-
-    def act(self, state):
-        if np.random.rand() <= self.epsilon:
-            return self._random.random_choice()
-        future_action = self.model.predict(state)
-        return np.argmax(future_action[0])  # returns action
-            
-    def replay(self):
-        minibatch = random.sample(self.past, self.batch_size)
-        for state, action, reward, next_state in minibatch:
-            target = self.model.predict(state)
-            t = self.target_model.predict(next_state)[0]
-            target[0][action] = reward + self.discount_rate * np.amax(t)
-            self.model.fit(state, target, epochs=1, verbose=0)
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-  
-        
     def strategy(self, opponent: Player) -> Action:
         """Runs a qlearn algorithm while the tournament is running."""
         if len(self.history) == 0:
             self.prev_action = self._random.random_choice()
             self.original_prev_action = self.prev_action
+        
         state = self.find_state(opponent)
         reward = self.find_reward(opponent)
-        action = self.act(state) 
-
-        if state not in self.Qs:
-            self.Vs[state] = 0
-            
-        self.note(self.prev_state, self.prev_action, reward, state)  
-              
         
         action = self.select_action(state)
-        self.prev_state = state
-        self.prev_action = action
- 
-        if len(self.past) > self.batch_size:
-            self.replay()
-        else:
-            self.copy_to_target_model()
-            
-        self.prev_state = state
-        self.prev_action = action
-        
-        print("ACTION: "+str(action))
-        if action <= 0.5:
-            return  self.defect()
-        else:
-            return  self.cooperate()
 
-    #| 0   | defect  |
-    #| 1   | cooperate |
+        if action == Action.D:
+            action_idx = 0
+        else:
+            action_idx = 1
+            
+        if self.prev_action == Action.D:
+            prev_action_idx = 0
+        else:
+            prev_action_idx = 1
+            
+        q_state = np.identity(2)[prev_action_idx]
+        q_state = q_state.reshape(-1, 2)
+        q_target = self.model.predict(q_state)
+        target = reward + self.discount_rate * np.max(q_target)
+        trg = np.identity(2)[action_idx]
+        trg = trg.reshape(-1, 2)
+        target_vec = self.model.predict(trg)
+        action_idx = np.argmax(target_vec)
+        target_vec[0][action_idx] = target        
+        q_x = np.identity(2)[action_idx]
+        q_x = trg.reshape(-1, 2)
+        self.model.fit(q_x, target_vec, epochs=1, verbose=0)
+        self.prev_state = state
+        self.prev_action = action 
+        return action
+        
+    def select_action(self, state) -> Action:     
+        if len(state) == 0:
+            index = random.randint(0, 1)
+            action_idx = index
+        else:  
+            if state[-1] == Action.D:
+                index = 0
+            else:
+                index = 1
+            tmp = np.identity(2)[index]
+            tmp = tmp.reshape(-1, 2)
+            prediction = self.model.predict(tmp)
+            action_idx = np.argmax(prediction)
+        
+        if action_idx == 0:
+            action = self.defect()
+        else:
+            action = self.cooperate() 
+        
+        rnd_num = self._random.random()
+        p = 1.0 - self.action_selection_parameter
+        if rnd_num < p:
+            return action
+        return self._random.random_choice()
+
+  
+    def find_state(self, opponent: Player) -> str:
+        action_str = actions_to_str(opponent.history[-self.memory_length :])
+        return action_str
+    
+    #| 1   | defect  |
+    #| 0   | cooperate |
     @classmethod
-    def cooperate(self, opponent: Player) -> Action:
+    def cooperate(self) -> Action:
         return C
 
     @classmethod
-    def defect(self, opponent: Player) -> Action:
+    def defect(self) -> Action:
         return D
