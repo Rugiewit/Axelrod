@@ -172,11 +172,8 @@ class CautiousQLearner(RiskyQLearner):
     
 class MediocreQLearner(RiskyQLearner):
     """A player who learns mediocre strategies through the q-learning algorithm.
-
     This Q learner is mediocre to come to conclusions and only looks mid way ahead
-
     Names:
-
     - Mediocre Q Learner: Original name by Davor Jovanoski
     """
 
@@ -186,10 +183,7 @@ class MediocreQLearner(RiskyQLearner):
     
 class DeepQLearner(RiskyQLearner):
     """A player who learns deep q-learning algorithm.
-
-
     Names:
-
     - DeepQ Learner: Original name by Davor Jovanoski
     """
 

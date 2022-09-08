@@ -7,7 +7,8 @@ basic_tournament.csv
 test_outputs/*csv.summary
 test_outputs/*svg
 test_outputs/*cache
-
+assets/
+data/
 # Mac Specific
 *.DS_Store
 

@@ -81,7 +81,7 @@ axelrod_first_strategies = [
     FirstByAnonymous,
     Random,
 ]
-test_strategies = [ Random, DeepQLearner]
+test_strategies = [ Random, DeepQLearner, TitForTat]
 
 paper_strategies = [Cooperator, Defector, TitForTat, Grudger, Random, MediocreQLearner, HesitantQLearner, CautiousQLearner, DeepQLearner]
 
