@@ -215,7 +215,7 @@ class DeepQLearner(RiskyQLearner):
         model = keras.Sequential()
         model.add(keras.layers.InputLayer(batch_input_shape=(1, 2)))
         model.add(keras.layers.Dense(16, activation='relu', kernel_initializer=init))
-        model.add(keras.layers.Dense(8, activation='relu', kernel_initializer=init))
+        model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=init))
         model.add(keras.layers.Dense(2, activation='linear', kernel_initializer=init))
         model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
         return model
