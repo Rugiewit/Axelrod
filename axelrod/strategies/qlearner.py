@@ -199,20 +199,22 @@ class DeepQLearner(RiskyQLearner):
         # Set this explicitly, since the constructor of super will not pick it up
         # for any subclasses that do not override methods using random calls.
         self.classifier["stochastic"] = True        
-        self.model = self.agent()
+        self.model = self.agent2()
 
     def agent(self):
         model = keras.Sequential()
         model.add(keras.layers.InputLayer(batch_input_shape=(1, 2)))
-        model.add(keras.layers.Dense(10, activation='sigmoid'))
+        model.add(keras.layers.Dense(16, activation='relu'))
+        model.add(keras.layers.Dense(8, activation='sigmoid'))
         model.add(keras.layers.Dense(2, activation='linear'))
-        model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+        model.compile(loss='mse', optimizer='adam', metrics=['mae', 'accuracy'])
         return model
     
     def agent2(self):
         init = tf.keras.initializers.HeUniform()
         model = keras.Sequential()
-        model.add(keras.layers.Dense(16, input_shape=(1,2), activation='relu', kernel_initializer=init))
+        model.add(keras.layers.InputLayer(batch_input_shape=(1, 2)))
+        model.add(keras.layers.Dense(16, activation='relu', kernel_initializer=init))
         model.add(keras.layers.Dense(8, activation='relu', kernel_initializer=init))
         model.add(keras.layers.Dense(2, activation='linear', kernel_initializer=init))
         model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
@@ -249,7 +251,7 @@ class DeepQLearner(RiskyQLearner):
         target_vec = self.model.predict(trg)
         action_idx = np.argmax(target_vec)
         target_vec[0][action_idx] = target        
-        q_x = np.identity(2)[action_idx]
+        q_x = q_state #np.identity(2)[action_idx]
         q_x = trg.reshape(-1, 2)
         self.model.fit(q_x, target_vec, epochs=1, verbose=0)
         self.prev_state = state
