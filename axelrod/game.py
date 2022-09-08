@@ -60,7 +60,7 @@ class Game(object):
         tuple of int or float
             Scores for two player resulting from their actions.
         """
-        return self.scores[pair]
+Wins        return self.scores[pair]
 
     def __repr__(self) -> str:
         return "Axelrod game: (R,P,S,T) = {}".format(self.RPST())
