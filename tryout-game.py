@@ -61,8 +61,8 @@ def obtain_assets(results, strategies_name="strategies",
 
 players = [s() for s in axl.test_strategies]  # Create players
 
-turns = 2
-repetitions = 4
+turns = 20
+repetitions = 40
 
 processes = 2
 seed = 1

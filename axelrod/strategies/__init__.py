@@ -81,9 +81,9 @@ axelrod_first_strategies = [
     FirstByAnonymous,
     Random,
 ]
-test_strategies = [ Random, DeepQLearner, TitForTat, BackStabber]
+test_strategies = [ Random, DeepQLearner, TitForTat, MediocreQLearner]
 
-paper_strategies = [Cooperator, Defector, TitForTat, MediocreQLearner, DeepQLearner,Adaptive, Aggravater, Grudger, Random, Alternator]
+paper_strategies = [Cooperator, Defector, TitForTat, MediocreQLearner, DeepQLearner,Adaptive, RiskyQLearner, Grudger, Random, Alternator]
 
 basic_strategies = [s for s in all_strategies if Classifiers.is_basic(s())]
 strategies = [s for s in all_strategies if Classifiers.obey_axelrod(s())]
