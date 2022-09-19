@@ -261,10 +261,20 @@ class DeepQLearner(RiskyQLearner):
         trg = trg.reshape(-1, 2)
         z=np.zeros((2,2))
         z[0]=trg     
-        z[1]=trg     
         z=z.reshape(1, 4)       
-        target_vec = self.model.predict(z)
+        target_vec1 = self.model.predict(z)            
+        z=np.zeros((2,2))
+        z[1]=trg         
+        z=z.reshape(1, 4)
+        target_vec2 = self.model.predict(z) 
+        left_idx = np.argmax(target_vec1)
+        right_idx = np.argmax(target_vec2)           
+        if target_vec1[left_idx]>target_vec2[right_idx]:
+            target_vec=target_vec1
+        else:
+            target_vec=target_vec2
         action_idx = np.argmax(target_vec)
+        
         target_vec[0][prev_action_idx] = target        
         #q_x = q_state #np.identity(2)[action_idx]
         #q_x = trg.reshape(-1, 2)
