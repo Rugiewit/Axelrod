@@ -203,7 +203,7 @@ class DeepQLearner(RiskyQLearner):
 
     def agent(self):
         model = keras.Sequential()
-        model.add(keras.layers.InputLayer(batch_input_shape=(1, 4)))
+        model.add(keras.layers.InputLayer(batch_input_shape=(1, 2)))
         model.add(keras.layers.Dense(16, activation='relu'))
         model.add(keras.layers.Dense(8, activation='sigmoid'))
         model.add(keras.layers.Dense(2, activation='linear'))
@@ -213,7 +213,7 @@ class DeepQLearner(RiskyQLearner):
     def agent2(self):
         init = tf.keras.initializers.HeUniform()
         model = keras.Sequential()
-        model.add(keras.layers.InputLayer(batch_input_shape=(1, 4)))
+        model.add(keras.layers.InputLayer(batch_input_shape=(1, 2)))
         model.add(keras.layers.Dense(16, activation='relu', kernel_initializer=init))
         model.add(keras.layers.Dense(8, activation='sigmoid', kernel_initializer=init))
         model.add(keras.layers.Dense(2, activation='linear', kernel_initializer=init))
@@ -223,15 +223,13 @@ class DeepQLearner(RiskyQLearner):
 
     def strategy(self, opponent: Player) -> Action:
         """Runs a qlearn algorithm while the tournament is running."""
-        o_prev_action =  self._random.random_choice()
         if len(self.history) == 0:
             self.prev_action = self._random.random_choice()
             self.original_prev_action = self.prev_action
-        else:
-            o_prev_action=opponent.history[-1]
         
         state = self.find_state(opponent)
         reward = self.find_reward(opponent)
+        
         action = self.select_action(state)
 
         if action == Action.D:
@@ -244,48 +242,23 @@ class DeepQLearner(RiskyQLearner):
         else:
             prev_action_idx = 1
             
-        if o_prev_action == Action.D:
-            prev_o_action_idx = 0
-        else:
-            prev_o_action_idx = 1
-            
         q_state = np.identity(2)[prev_action_idx]
         q_state = q_state.reshape(-1, 2)
-        o_state = np.identity(2)[prev_o_action_idx]
-        o_state = o_state.reshape(-1, 2)
-        q_input = np.concatenate((q_state, o_state), axis=1)
-        q_input = q_input.reshape(1, 4)
-        q_target = self.model.predict(q_input)
+        q_target = self.model.predict(q_state)
         target = reward + (self.discount_rate * np.max(q_target))
-        trg = np.identity(2)[action_idx]            
+        trg = np.identity(2)[action_idx]
         trg = trg.reshape(-1, 2)
-        z=np.zeros((2,2))
-        z[0]=trg     
-        z=z.reshape(1, 4)       
-        target_vec1 = self.model.predict(z)            
-        z=np.zeros((2,2))
-        z[1]=trg         
-        z=z.reshape(1, 4)
-        target_vec2 = self.model.predict(z) 
-        left_idx = np.argmax(target_vec1)
-        right_idx = np.argmax(target_vec2)           
-        if target_vec1[left_idx]>target_vec2[right_idx]:
-            target_vec=target_vec1
-        else:
-            target_vec=target_vec2
+        target_vec = self.model.predict(trg)
         action_idx = np.argmax(target_vec)
-        
         target_vec[0][prev_action_idx] = target        
-        #q_x = q_state #np.identity(2)[action_idx]
-        #q_x = trg.reshape(-1, 2)
-        q_input=q_input.reshape(1, 4)
-        self.model.fit(q_input, target_vec, epochs=1, verbose=0)
+        q_x = q_state #np.identity(2)[action_idx]
+        q_x = trg.reshape(-1, 2)
+        self.model.fit(q_x, target_vec, epochs=1, verbose=0)
         self.prev_state = state
         self.prev_action = action 
         return action
-    
-    def select_action(self, state) -> Action:   
-  
+        
+    def select_action(self, state) -> Action:     
         if len(state) == 0:
             index = random.randint(0, 1)
             action_idx = index
@@ -294,12 +267,9 @@ class DeepQLearner(RiskyQLearner):
                 index = 0
             else:
                 index = 1
-            tmp = np.identity(2)[index]            
+            tmp = np.identity(2)[index]
             tmp = tmp.reshape(-1, 2)
-            z=np.zeros((2,2))
-            z[index]=tmp
-            z=z.reshape(1, 4)
-            prediction = self.model.predict(z)
+            prediction = self.model.predict(tmp)
             action_idx = np.argmax(prediction)
         
         if action_idx == 0:
@@ -313,11 +283,11 @@ class DeepQLearner(RiskyQLearner):
             return action
         return self._random.random_choice()
 
+  
     def find_state(self, opponent: Player) -> str:
         action_str = actions_to_str(opponent.history[-self.memory_length :])
         return action_str
     
-
     #| 1   | defect  |
     #| 0   | cooperate |
     @classmethod
