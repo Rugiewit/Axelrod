@@ -189,7 +189,7 @@ class DeepQLearner(RiskyQLearner):
 
     name = "Deep QLearner"   
     learning_rate = 0.01
-    discount_rate = 0.95
+    discount_rate = 0.8
     
     def __init__(self) -> None:
         """Initialises the player by picking a random strategy."""
@@ -226,6 +226,7 @@ class DeepQLearner(RiskyQLearner):
         if len(self.history) == 0:
             self.prev_action = self._random.random_choice()
             self.original_prev_action = self.prev_action
+            
         
         state = self.find_state(opponent)
         reward = self.find_reward(opponent)
@@ -245,7 +246,7 @@ class DeepQLearner(RiskyQLearner):
         q_state = np.identity(2)[prev_action_idx]
         q_state = q_state.reshape(-1, 2)
         q_target = self.model.predict(q_state)
-        target = reward + (self.discount_rate * np.max(q_target))
+        target = 2*reward + (self.discount_rate * np.max(q_target))
         trg = np.identity(2)[action_idx]
         trg = trg.reshape(-1, 2)
         target_vec = self.model.predict(trg)
@@ -278,8 +279,8 @@ class DeepQLearner(RiskyQLearner):
             action = self.cooperate() 
         
         rnd_num = self._random.random()
-        p = 1.0 - self.action_selection_parameter
-        if rnd_num < p:
+        
+        if rnd_num < 1-self.action_selection_parameter:
             return action
         return self._random.random_choice()
 
