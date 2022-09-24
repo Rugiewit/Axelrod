@@ -257,7 +257,10 @@ class DeepQLearner(RiskyQLearner):
         self.model.fit(q_x, target_vec, epochs=1, verbose=0)
         self.prev_state = state
         self.prev_action = action 
-        return action
+        if action_idx == 0:
+            return Action.D
+        else:
+            return Action.C
         
     def select_action(self, state) -> Action:     
         if len(state) == 0:
