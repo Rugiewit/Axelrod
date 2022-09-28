@@ -188,7 +188,7 @@ class DeepQLearner(RiskyQLearner):
     """
 
     name = "Deep QLearner"   
-    learning_rate = 0.01
+    learning_rate = 0.2
     discount_rate = 0.8
     
     def __init__(self) -> None:
